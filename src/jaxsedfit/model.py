@@ -1768,11 +1768,12 @@ def _build_delayed_host(context: ModelContext, prior_config: dict[str, Any], *, 
     log_stellar_mass = _sample_log_stellar_mass(prior_config)
     min_age = jnp.asarray(max(float(cfg.sfh_t_min_gyr), 1.0e-3), dtype=jnp.float64)
     max_age = jnp.maximum(t_obs_gyr, min_age * 1.01)
+    default_log_age_gyr = 0.5 * (jnp.log(min_age) + jnp.log(max_age))
     log_age_gyr = _sample_bounded_normal(
         prior_config,
         "log_sfh_age_gyr",
-        np.log(min(3.0, max(float(context.t_obs_gyr), 1.0e-3))),
-        1.0,
+        default_log_age_gyr,
+        2.0,
         jnp.log(min_age),
         jnp.log(max_age),
     )

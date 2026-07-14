@@ -134,6 +134,31 @@ def test_delayed_host_priors_respect_physical_and_template_support(monkeypatch):
         assert float(np.asarray(support.upper_bound)) == pytest.approx(high)
 
 
+def test_delayed_host_defaults_use_broad_sfh_priors(monkeypatch):
+    class _SSPData:
+        ssp_lgmet = np.array([-2.0, -1.5, -1.0, -0.5])
+        ssp_lg_age_gyr = np.array([-1.0, -0.5, 0.0, 0.5])
+        ssp_wave = np.array([900.0, 2000.0, 5000.0, 10000.0])
+        ssp_flux = np.ones((4, 4, 4))
+
+    monkeypatch.setattr("jaxsedfit.preload._load_ssp_templates", lambda fn: _SSPData())
+    monkeypatch.setattr("jaxsedfit.preload._SSP_DATA_CACHE", {})
+    cfg = _mock_config()
+    cfg.galaxy.dsps_ssp_fn = "fake-broad-delayed.h5"
+    context = build_model_context(cfg)
+    tr = trace(seed(lambda: grahsp_photometric_model(context, include_components=False), 17)).get_trace()
+
+    log_age_dist = tr["log_sfh_age_gyr"]["fn"]
+    log_tau_over_age_dist = tr["log_sfh_tau_over_age"]["fn"]
+    expected_log_age_loc = 0.5 * (np.log(cfg.galaxy.sfh_t_min_gyr) + np.log(context.t_obs_gyr))
+
+    assert float(np.asarray(log_age_dist.base_dist.loc)) == pytest.approx(expected_log_age_loc)
+    assert float(np.asarray(log_age_dist.base_dist.scale)) == pytest.approx(2.0)
+    assert float(np.asarray(log_tau_over_age_dist.base_dist.loc)) == pytest.approx(0.0)
+    assert float(np.asarray(log_tau_over_age_dist.base_dist.scale)) == pytest.approx(cfg.galaxy.tau_host_prior_scale)
+    assert cfg.galaxy.tau_host_prior_scale == pytest.approx(1.5)
+
+
 def test_delayed_host_rejects_both_tau_prior_parameterizations():
     cfg = _mock_config()
     cfg.prior_config.host.log_sfh_tau_gyr = dist.Normal(0.0, 1.0)

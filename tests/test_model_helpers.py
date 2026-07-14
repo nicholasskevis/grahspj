@@ -956,13 +956,13 @@ def test_photometric_systematic_variance_matches_grahsp_error_model():
         obs_fluxes=np.asarray([8.0]),
         obs_errors=np.asarray([0.5]),
         systematics_width=0.1,
-        agn_systematics_width=0.02,
+        agn_systematics_width=0.2,
         agn_component=np.asarray([5.0]),
     )
     pred_fluxes = np.asarray([9.0])
 
     actual = float(photometric_loglike(pred_fluxes=pred_fluxes, **kwargs))
-    sigma = np.sqrt(0.5**2 + (0.1 * 8.0) ** 2 + (0.02 * 5.0) ** 2)
+    sigma = np.sqrt(0.5**2 + (0.1 * 8.0) ** 2 + (0.2 * 5.0) ** 2)
     expected = -0.5 * (((8.0 - 9.0) / sigma) ** 2 + np.log(2.0 * np.pi * sigma**2))
 
     assert actual == pytest.approx(expected)
