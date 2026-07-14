@@ -101,8 +101,12 @@ def test_build_chimera_fit_config(tmp_path):
     assert cfg.galaxy.dsps_ssp_fn == str(ssp_path)
     prior = cfg.prior_config.to_mapping()
     assert "log_stellar_mass" in prior
-    assert prior["log_stellar_mass"]["dist"] == "student_t"
+    assert prior["log_stellar_mass"]["dist"] == "TruncatedNormal"
     assert prior["log_stellar_mass"]["loc"] == 10.0
+    assert prior["log_stellar_mass"]["scale"] == 1.5
+    assert prior["log_stellar_mass"]["low"] == 7.0
+    assert prior["log_stellar_mass"]["high"] == 12.5
+    assert prior["mass_metallicity_relation"]["enabled"] is True
 
 
 def test_build_chimera_fit_config_preserves_user_prior_overrides(tmp_path):

@@ -5,6 +5,7 @@ from dataclasses import asdict, dataclass, field, is_dataclass
 from typing import Any, Mapping, Sequence
 
 import numpy as np
+import numpyro.distributions as dist
 
 
 @dataclass
@@ -531,7 +532,7 @@ class RedshiftPriorConfig:
 @dataclass
 class MassMetallicityPriorConfig:
     """Soft stellar mass-metallicity prior for host metallicity."""
-    configured: bool = False
+    configured: bool = True
     enabled: bool = True
     pivot_mass: float = 10.0
     pivot_logzsol: float = -0.15
@@ -820,7 +821,9 @@ class PriorConfig:
         host capture, and spectrum scale.
     """
     redshift: RedshiftPriorConfig = field(default_factory=RedshiftPriorConfig)
-    stellar_mass: Any | None = None
+    stellar_mass: Any | None = field(
+        default_factory=lambda: dist.TruncatedNormal(10.0, 1.5, low=7.0, high=12.5)
+    )
     mass_metallicity: MassMetallicityPriorConfig = field(default_factory=MassMetallicityPriorConfig)
     host: HostPriorConfig = field(default_factory=HostPriorConfig)
     agn: AGNPriorConfig = field(default_factory=AGNPriorConfig)

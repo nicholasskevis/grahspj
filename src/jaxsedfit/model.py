@@ -442,18 +442,23 @@ def _safe_log10(x):
 
 
 def _sample_log_stellar_mass(prior_config: dict[str, Any]):
-    """Sample stellar mass with a less top-heavy default prior.
+    """Sample stellar mass with a broad physical default prior.
 
-    By default this uses a heavy-tailed Student-t prior centered lower than the
-    original Normal(10.5, 2.5) benchmark default. Existing Normal-like
-    overrides with only ``loc`` and ``scale`` are still supported.
+    By default this uses a broad truncated-normal prior centered near the knee
+    of the galaxy stellar-mass function while preventing pathological host
+    masses in poorly identified AGN/host decompositions. Existing overrides
+    with ``log_stellar_mass`` still take precedence.
 
     Parameters
     ----------
     prior_config : object
         prior_config value.
     """
-    return _sample_prior(prior_config, "log_stellar_mass", dist.StudentT(df=5.0, loc=10.0, scale=2.0))
+    return _sample_prior(
+        prior_config,
+        "log_stellar_mass",
+        dist.TruncatedNormal(10.0, 1.5, low=7.0, high=12.5),
+    )
 
 
 def _ssp_lgmet_solar_offset(
